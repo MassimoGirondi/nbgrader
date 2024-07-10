@@ -67,7 +67,17 @@ class ExchangeReleaseFeedback(Exchange, ABCExchangeReleaseFeedback):
                 submission_secret = fh.read()
 
             checksum = notebook_hash(secret=submission_secret, notebook_id=notebook_id)
-            dest = os.path.join(self.dest_path, "{}.html".format(checksum))
+            if self.subdirs:
+                # We create here the folder for the student. This should not be here but in the copy function (?)
+                dest = os.path.join(self.dest_path, student_id)
+                if not os.path.exists(dest):
+                        self.log.debug("Creating feedback folder for student {}".format(student_id))
+                        os.makedirs(dest)
+
+                dest = os.path.join(dest, "{}.html".format(checksum))
+
+            else:
+                dest = os.path.join(self.dest_path, "{}.html".format(checksum))
 
             self.log.info("Releasing feedback for student '{}' on assignment '{}/{}/{}' ({})".format(
                 student_id, self.coursedir.course_id, self.coursedir.assignment_id, notebook_id, timestamp))

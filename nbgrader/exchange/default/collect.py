@@ -54,7 +54,11 @@ class ExchangeCollect(Exchange, ABCExchangeCollect):
         if not check_mode(self.inbound_path, read=True, execute=True):
             self.fail("You don't have read permissions for the directory: {}".format(self.inbound_path))
         student_id = self.coursedir.student_id if self.coursedir.student_id else '*'
-        pattern = os.path.join(self.inbound_path, '{}+{}+*'.format(student_id, self.coursedir.assignment_id))
+        if self.subdirs:
+            pattern = os.path.join(self.inbound_path, student_id, '{}+{}+*'.format(student_id, self.coursedir.assignment_id))
+        else:
+            pattern = os.path.join(self.inbound_path, '{}+{}+*'.format(student_id, self.coursedir.assignment_id))
+
         records = [self._path_to_record(f) for f in glob.glob(pattern)]
         usergroups = groupby(records, lambda item: item['username'])
 
@@ -92,7 +96,11 @@ class ExchangeCollect(Exchange, ABCExchangeCollect):
 
         for rec in self.src_records:
             student_id = rec['username']
-            src_path = os.path.join(self.inbound_path, rec['filename'])
+            if self.subdirs:
+                src_path = os.path.join(self.inbound_path, student_id, rec['filename'])
+            else:
+                src_path = os.path.join(self.inbound_path, rec['filename'])
+            print("LOOKING AT", src_path)
 
             # Cross check the student id with the owner of the submitted directory
             if self.check_owner and pwd is not None: # check disabled under windows

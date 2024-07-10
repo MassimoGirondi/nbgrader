@@ -124,7 +124,12 @@ class ExchangeSubmit(Exchange, ABCExchangeSubmit):
         self.init_release()
         submission_secret = secrets.token_hex(64)
 
-        dest_path = os.path.join(self.inbound_path, self.assignment_filename)
+        # In case of subdirs, we just prepend the filename with the username
+        if self.subdirs:
+            dest_path = os.path.join(self.inbound_path, get_username(), self.assignment_filename)
+        else:
+            dest_path = os.path.join(self.inbound_path(), self.assignment_filename)
+
         if self.add_random_string:
             cache_path = os.path.join(self.cache_path, self.assignment_filename.rsplit('+', 1)[0])
         else:

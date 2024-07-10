@@ -22,6 +22,11 @@ class Exchange(ABCExchange):
         help="The nbgrader exchange directory writable to everyone. MUST be preexisting."
     ).tag(config=True)
 
+    subdirs = Bool(
+        False,
+        help="Whether the assignments would live in users' subfolder (e.g. course/assigments/user/assignment1/..."
+    ).tag(config=True)
+
     cache = Unicode(
         "",
         help="Local cache directory for nbgrader submit and nbgrader list. Defaults to $JUPYTER_DATA_DIR/nbgrader_cache"
