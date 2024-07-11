@@ -20,9 +20,9 @@ class ExchangeFetchFeedback(Exchange, ABCExchangeFetchFeedback):
             self.course_path = os.path.join(self.root, self.coursedir.course_id)
 
         if self.subdirs:
-            self.outbound_path = os.path.join(self.course_path, 'feedback', get_username())
+            self.outbound_path = os.path.join(self.course_path, 'outbound-feedback', get_username())
         else:
-            self.outbound_path = os.path.join(self.course_path, 'feedback')
+            self.outbound_path = os.path.join(self.course_path, 'outbound-feedback')
         self.src_path = os.path.join(self.outbound_path)
         self.cache_path = os.path.join(self.cache, self.coursedir.course_id)
 

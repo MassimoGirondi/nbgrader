@@ -24,19 +24,25 @@ class ExchangeList(ABCExchangeList, Exchange):
         course_id = self.coursedir.course_id if self.coursedir.course_id else '*'
         assignment_id = self.coursedir.assignment_id if self.coursedir.assignment_id else '*'
         student_id = self.coursedir.student_id if self.coursedir.student_id else '*'
-
+        course_id_pattern = "" if self.no_course_id else course_id
+        subdir_pattern = "*/" if self.subdirs else ""
+        
         if self.inbound:
-            pattern = os.path.join(self.root, course_id, 'inbound', '{}+{}+*'.format(student_id, assignment_id))
+            pattern = os.path.join(self.root, course_id_pattern, 'inbound', '{}{}+{}+*'.format(subdir_pattern,student_id, assignment_id))
         elif self.cached:
-            pattern = os.path.join(self.cache, course_id, '{}+{}+*'.format(student_id, assignment_id))
+            pattern = os.path.join(self.cache, course_id_pattern, '{}+{}+*'.format(student_id, assignment_id))
         else:
-            pattern = os.path.join(self.root, course_id, 'outbound', '{}'.format(assignment_id))
+            pattern = os.path.join(self.root, course_id_pattern, 'outbound', '{}{}'.format(subdir_pattern,assignment_id))
 
         self.assignments = sorted(glob.glob(pattern))
 
     def parse_assignment(self, assignment):
+        print(assignment)
         if self.inbound:
-            regexp = r".*/(?P<course_id>.*)/inbound/(?P<student_id>[^+]*)\+(?P<assignment_id>[^+]*)\+(?P<timestamp>[^+]*)(?P<random_string>\+.*)?"
+            if self.subdirs:
+                regexp = r".*/(?P<course_id>.*)/inbound/(?P<student_id2>[^+]*)/(?P<student_id>[^+]*)\+(?P<assignment_id>[^+]*)\+(?P<timestamp>[^+]*)(?P<random_string>\+.*)?"
+            else:
+                regexp = r".*/(?P<course_id>.*)/inbound/(?P<student_id>[^+]*)\+(?P<assignment_id>[^+]*)\+(?P<timestamp>[^+]*)(?P<random_string>\+.*)?"
         elif self.cached:
             regexp = r".*/(?P<course_id>.*)/(?P<student_id>.*)\+(?P<assignment_id>.*)\+(?P<timestamp>.*)"
         else:
@@ -136,8 +142,13 @@ class ExchangeList(ABCExchangeList, Exchange):
                     with open(submission_secret_path) as fh:
                         submission_secret = fh.read()
                     nb_hash = notebook_hash(secret=submission_secret, notebook_id=nb_info["notebook_id"])
-                    exchange_feedback_path = os.path.join(
-                        self.root, info['course_id'], 'feedback', '{0}.html'.format(nb_hash))
+                    if self.no_course_id:
+                        exchange_feedback_path = os.path.join(
+                            self.root, 'outbound-feedback', '{0}.html'.format(nb_hash))
+                    else:
+                        exchange_feedback_path = os.path.join(
+                            self.root, info['course_id'], 'outbound-feedback', '{0}.html'.format(nb_hash))
+
                     has_exchange_feedback = os.path.isfile(exchange_feedback_path)
                 else:
                     unique_key = make_unique_key(
@@ -149,13 +160,17 @@ class ExchangeList(ABCExchangeList, Exchange):
                     self.log.debug("Unique key is: {}".format(unique_key))
                     nb_hash = notebook_hash(notebook, unique_key)
                     exchange_feedback_path = os.path.join(
-                        self.root, info['course_id'], 'feedback', '{0}.html'.format(nb_hash))
+                        self.root, info['course_id'], 'outbound-feedback', '{0}.html'.format(nb_hash))
                     has_exchange_feedback = os.path.isfile(exchange_feedback_path)
                     if not has_exchange_feedback:
                         # Try looking for legacy feedback.
                         nb_hash = notebook_hash(notebook)
-                        exchange_feedback_path = os.path.join(
-                            self.root, info['course_id'], 'feedback', '{0}.html'.format(nb_hash))
+                        if self.no_course_id:
+                            exchange_feedback_path = os.path.join(
+                            self.root, 'outbound-feedback', '{0}.html'.format(nb_hash))
+                        else:
+                            exchange_feedback_path = os.path.join(
+                            self.root, info['course_id'], 'outbound-feedback', '{0}.html'.format(nb_hash))
                         has_exchange_feedback = os.path.isfile(exchange_feedback_path)
 
                 if has_exchange_feedback:

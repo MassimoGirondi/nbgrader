@@ -26,7 +26,7 @@ class ExchangeReleaseFeedback(Exchange, ABCExchangeReleaseFeedback):
         else:
             self.course_path = os.path.join(self.root, self.coursedir.course_id)
 
-        self.outbound_feedback_path = os.path.join(self.course_path, 'feedback')
+        self.outbound_feedback_path = os.path.join(self.course_path, 'outbound-feedback')
         self.dest_path = os.path.join(self.outbound_feedback_path)
         # 0755
         self.ensure_directory(
