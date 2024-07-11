@@ -27,6 +27,12 @@ class Exchange(ABCExchange):
         help="Whether the assignments would live in users' subfolder (e.g. course/assigments/user/assignment1/..."
     ).tag(config=True)
 
+
+    no_course_id = Bool(
+        False,
+        help="Whether the assignments would live in users' subfolder (e.g. course/assigments/user/assignment1/..."
+    ).tag(config=True)
+
     cache = Unicode(
         "",
         help="Local cache directory for nbgrader submit and nbgrader list. Defaults to $JUPYTER_DATA_DIR/nbgrader_cache"

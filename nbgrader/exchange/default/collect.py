@@ -47,7 +47,11 @@ class ExchangeCollect(Exchange, ABCExchangeCollect):
         if self.coursedir.course_id == '':
             self.fail("No course id specified. Re-run with --course flag.")
 
-        self.course_path = os.path.join(self.root, self.coursedir.course_id)
+        if self.no_course_id:
+            self.course_path = os.path.join(self.root)
+        else:
+            self.course_path = os.path.join(self.root, self.coursedir.course_id)
+
         self.inbound_path = os.path.join(self.course_path, 'inbound')
         if not os.path.isdir(self.inbound_path):
             self.fail("Course not found: {}".format(self.inbound_path))
@@ -100,7 +104,6 @@ class ExchangeCollect(Exchange, ABCExchangeCollect):
                 src_path = os.path.join(self.inbound_path, student_id, rec['filename'])
             else:
                 src_path = os.path.join(self.inbound_path, rec['filename'])
-            print("LOOKING AT", src_path)
 
             # Cross check the student id with the owner of the submitted directory
             if self.check_owner and pwd is not None: # check disabled under windows

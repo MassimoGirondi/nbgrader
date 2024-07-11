@@ -42,7 +42,14 @@ class ExchangeSubmit(Exchange, ABCExchangeSubmit):
         if not self.authenticator.has_access(self.coursedir.student_id, self.coursedir.course_id):
             self.fail("You do not have access to this course.")
 
-        self.inbound_path = os.path.join(self.root, self.coursedir.course_id, 'inbound')
+        if self.no_course_id:
+            self.inbound_path = os.path.join(self.root, 'inbound')
+        else:
+            self.inbound_path = os.path.join(self.root, self.coursedir.course_id, 'inbound')
+
+        if self.subdirs:
+            self.inbound_path= os.path.join(self.inbound_path, get_username())
+
         if not os.path.isdir(self.inbound_path):
             self.fail("Inbound directory doesn't exist: {}".format(self.inbound_path))
         if not check_mode(self.inbound_path, write=True, execute=True):
@@ -68,7 +75,11 @@ class ExchangeSubmit(Exchange, ABCExchangeSubmit):
         if self.coursedir.course_id == '':
             self.fail("No course id specified. Re-run with --course flag.")
 
-        course_path = os.path.join(self.root, self.coursedir.course_id)
+        if self.no_course_id:
+            course_path = os.path.join(self.root)
+        else:
+            course_path = os.path.join(self.root, self.coursedir.course_id)
+
         outbound_path = os.path.join(course_path, 'outbound')
         self.release_path = os.path.join(outbound_path, self.coursedir.assignment_id)
         if not os.path.isdir(self.release_path):
@@ -124,11 +135,7 @@ class ExchangeSubmit(Exchange, ABCExchangeSubmit):
         self.init_release()
         submission_secret = secrets.token_hex(64)
 
-        # In case of subdirs, we just prepend the filename with the username
-        if self.subdirs:
-            dest_path = os.path.join(self.inbound_path, get_username(), self.assignment_filename)
-        else:
-            dest_path = os.path.join(self.inbound_path(), self.assignment_filename)
+        dest_path = os.path.join(self.inbound_path, self.assignment_filename)
 
         if self.add_random_string:
             cache_path = os.path.join(self.cache_path, self.assignment_filename.rsplit('+', 1)[0])

@@ -28,7 +28,11 @@ class ExchangeFetchAssignment(Exchange, ABCExchangeFetchAssignment):
         if not self.authenticator.has_access(self.coursedir.student_id, self.coursedir.course_id):
             self.fail("You do not have access to this course.")
 
-        self.course_path = os.path.join(self.root, self.coursedir.course_id)
+        if self.path_includes_course:
+            self.course_path = os.path.join(self.root, self.coursedir.course_id)
+        else:
+            self.course_path = self.root
+
         self.outbound_path = os.path.join(self.course_path, 'outbound')
         self.src_path = os.path.join(self.outbound_path, self.coursedir.assignment_id)
         if not os.path.isdir(self.src_path):

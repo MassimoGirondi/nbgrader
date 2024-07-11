@@ -69,7 +69,11 @@ class ExchangeReleaseAssignment(Exchange, ABCExchangeReleaseAssignment):
         if self.coursedir.course_id == '':
             self.fail("No course id specified. Re-run with --course flag.")
 
-        self.course_path = os.path.join(self.root, self.coursedir.course_id)
+        if self.no_course_id:
+            self.course_path = os.path.join(self.root)
+        else:
+            self.course_path = os.path.join(self.root, self.coursedir.course_id)
+
         self.outbound_path = os.path.join(self.course_path, 'outbound')
         self.inbound_path = os.path.join(self.course_path, 'inbound')
         self.dest_path = os.path.join(self.outbound_path, self.coursedir.assignment_id)

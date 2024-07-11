@@ -14,7 +14,11 @@ class ExchangeFetchFeedback(Exchange, ABCExchangeFetchFeedback):
         if self.coursedir.course_id == '':
             self.fail("No course id specified. Re-run with --course flag.")
 
-        self.course_path = os.path.join(self.root, self.coursedir.course_id)
+        if self.no_course_id:
+            self.course_path = os.path.join(self.root)
+        else:
+            self.course_path = os.path.join(self.root, self.coursedir.course_id)
+
         if self.subdirs:
             self.outbound_path = os.path.join(self.course_path, 'feedback', get_username())
         else:
@@ -45,7 +49,14 @@ class ExchangeFetchFeedback(Exchange, ABCExchangeFetchFeedback):
         self.feedback_files = []
         submissions = [os.path.split(x)[-1] for x in glob.glob(pattern)]
         for submission in submissions:
-            _, assignment_id, timestamp = submission.split('/')[-1].split('+')
+            split = submission.split('/')[-1].split('+')
+            if len(split) == 3:
+                # We do not have a ISO timezone
+                _, assignment_id, timestamp = split
+            else:
+                assignment_id = split[-3]
+                timestamp = "+".join(split[-2:])
+
             self.log.debug(
                 "Looking for feedback for '{}/{}' submitted at {}".format(
                     self.coursedir.course_id, assignment_id, timestamp))
