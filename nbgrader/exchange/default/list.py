@@ -32,7 +32,7 @@ class ExchangeList(ABCExchangeList, Exchange):
         elif self.cached:
             pattern = os.path.join(self.cache, course_id_pattern, '{}+{}+*'.format(student_id, assignment_id))
         else:
-            pattern = os.path.join(self.root, course_id_pattern, 'outbound', '{}{}'.format(subdir_pattern,assignment_id))
+            pattern = os.path.join(self.root, course_id_pattern, 'outbound', '{}'.format(assignment_id))
 
         self.assignments = sorted(glob.glob(pattern))
 
