@@ -37,21 +37,33 @@ class ExchangeList(ABCExchangeList, Exchange):
         self.assignments = sorted(glob.glob(pattern))
 
     def parse_assignment(self, assignment):
-        print(assignment)
+        # When we don't have a course_id in the exchange, we need to skip it.
+        # Otherwise course name would be the exchange path name
+        # We could expect to have course_id setup in this cases (and a single course)
+
+        course_id_pattern = r"(?P<course_id>.*)/" if not self.no_course_id else r""
         if self.inbound:
             if self.subdirs:
-                regexp = r".*/(?P<course_id>.*)/inbound/(?P<student_id2>[^+]*)/(?P<student_id>[^+]*)\+(?P<assignment_id>[^+]*)\+(?P<timestamp>[^+]*)(?P<random_string>\+.*)?"
+                regexp = r".*/"+course_id_pattern+r"inbound/(?P<student_id2>[^+]*)/(?P<student_id>[^+]*)\+(?P<assignment_id>[^+]*)\+(?P<timestamp>[^+]*)(?P<random_string>\+.*)?"
             else:
-                regexp = r".*/(?P<course_id>.*)/inbound/(?P<student_id>[^+]*)\+(?P<assignment_id>[^+]*)\+(?P<timestamp>[^+]*)(?P<random_string>\+.*)?"
+                regexp = r".*/"+course_id_pattern+r"inbound/(?P<student_id>[^+]*)\+(?P<assignment_id>[^+]*)\+(?P<timestamp>[^+]*)(?P<random_string>\+.*)?"
         elif self.cached:
-            regexp = r".*/(?P<course_id>.*)/(?P<student_id>.*)\+(?P<assignment_id>.*)\+(?P<timestamp>.*)"
+            regexp = r".*/"+course_id_pattern+"(?P<student_id>.*)\+(?P<assignment_id>.*)\+(?P<timestamp>.*)"
         else:
-            regexp = r".*/(?P<course_id>.*)/outbound/(?P<assignment_id>.*)"
+            regexp = r".*/"+course_id_pattern+"outbound/(?P<assignment_id>.*)"
 
         m = re.match(regexp, assignment)
         if m is None:
             raise RuntimeError("Could not match '%s' with regexp '%s'", assignment, regexp)
-        return m.groupdict()
+
+        info = m.groupdict()
+        if not "course_id" in info:
+            if "COURSE" in os.environ:
+                info["course_id"] = os.environ["COURSE"]
+            else:
+                info["course_id"] = "nbgrader"
+
+        return info
 
     def format_inbound_assignment(self, info):
         msg = "{course_id} {student_id} {assignment_id} {timestamp}".format(**info)
@@ -82,6 +94,7 @@ class ExchangeList(ABCExchangeList, Exchange):
         assignments = []
         for path in self.assignments:
             info = self.parse_assignment(path)
+
             if courses is not None and info['course_id'] not in courses:
                 continue
 
