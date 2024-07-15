@@ -16,15 +16,16 @@ class ExchangeFetchFeedback(Exchange, DefaultExchangeFetchFeedback):
 
         if self.no_course_id:
             self.course_path = os.path.join(self.root)
+            self.cache_path = os.path.join(self.cache)
         else:
             self.course_path = os.path.join(self.root, self.coursedir.course_id)
+            self.cache_path = os.path.join(self.cache, self.coursedir.course_id)
 
         if self.subdirs:
             self.outbound_path = os.path.join(self.course_path, 'outbound-feedback', get_username())
         else:
             self.outbound_path = os.path.join(self.course_path, 'outbound-feedback')
         self.src_path = os.path.join(self.outbound_path)
-        self.cache_path = os.path.join(self.cache, self.coursedir.course_id)
 
         if self.coursedir.student_id != '*':
             # An explicit student id has been specified on the command line; we use it as student_id
