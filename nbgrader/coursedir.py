@@ -248,7 +248,7 @@ class CourseDirectory(LoggingConfigurable):
     def _validate_root(self, proposal: Bunch) -> str:
         path = os.path.abspath(proposal['value'])
         if path != proposal['value']:
-            self.log.warning("root '%s' is not absolute, standardizing it to '%s", proposal['value'], path)
+            self.log.warning("root '%s' is not absolute, standardizing it to '%s'", proposal['value'], path)
         return path
 
     ignore = List(
